@@ -24,11 +24,11 @@ int main()
 {
     init();
     bool game = true;
-	while (game)
-	{
+    while (game)
+    {
         game = update();
         draw();
-	}
+    }
     cleanup();
-	return 0;
+    return 0;
 }
