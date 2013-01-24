@@ -1,13 +1,34 @@
-#include <SFML/System.hpp>
 #include <iostream>
+
+void init()
+{
+    std::cout << "gl hf" << std::endl;
+}
+
+bool update()
+{
+    return false;
+}
+
+void draw()
+{
+    std::cout << "Hello World!" << std::endl;
+}
+
+void cleanup()
+{
+    std::cout << "gg" << std::endl;
+}
 
 int main()
 {
-	sf::Clock Clock;
-	while (Clock.GetElapsedTime() < 5.f)
+    init();
+    bool game = true;
+	while (game)
 	{
-		std::cout << Clock.GetElapsedTime() << std::endl;
-		sf::Sleep(0.5f);
+        game = update();
+        draw();
 	}
+    cleanup();
 	return 0;
 }
