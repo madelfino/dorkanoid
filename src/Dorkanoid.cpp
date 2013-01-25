@@ -1,6 +1,7 @@
-#include <SFML/Graphics.hpp>
 #include <vector>
 #include <iostream>
+
+#include "Brick.h"
 
 void init()
 {
@@ -64,8 +65,9 @@ int main()
         while (canvas.GetEvent(Event))
         {
             // Window closed or escape key pressed : exit
-            if ((Event.Type == sf::Event::Closed) || 
-               ((Event.Type == sf::Event::KeyPressed) && (Event.Key.Code == sf::Key::Escape)))
+            if ((Event.Type == sf::Event::Closed) ||
+               ((Event.Type == sf::Event::KeyPressed)
+               && (Event.Key.Code == sf::Key::Escape)))
             {
                 canvas.Close();
                 break;
