@@ -34,7 +34,7 @@ window.onload = function() {
         createBackground();
         var start = 0;
         var player = Crafty.e("2D, DOM, paddleSprite, Keyboard")
-                .attr({x: 340, y: 500, z: 2, left: false, right: false, speed: 7})
+                .attr({x: 340, y: 500, z: 2, left: false, right: false, speed: 15})
                 .bind('EnterFrame', function() {
                     if (this.right && this.x < 680)
                         this.x += this.speed;
@@ -66,9 +66,8 @@ window.onload = function() {
                 });
                 
         var ball = Crafty.e("2D, DOM, ballSprite, Collision")
-                .attr({x: 390, y: 480, z: 2, vx: 0, vy: 0, speed: 10})
+                .attr({x: 390, y: 480, z: 2, vx: 0, vy: 0, speed: 9})
                 .onHit('brickSprite', function() {
-                    Crafty.audio.play("hit1", 1, 1);
                     this.vy = -this.vy;
                 })
                 .onHit('paddleSprite', function() {
@@ -83,12 +82,31 @@ window.onload = function() {
                     this.x += this.vx;
                     this.y += this.vy;
                     if (this.x >= SCREEN_WIDTH - 20 || this.x <= 0) this.vx = -this.vx;
-                    if (this.y >= SCREEN_HEIGHT - 20 || this.y <= 0) this.vy = -this.vy;
+                    if (this.y <= 0) this.vy = -this.vy;
+                    if (this.y >= SCREEN_HEIGHT) {
+                        if (DEBUG)
+                            this.vy = -this.vy;
+                        else
+                            Crafty.scene("Lose");
+                    }
                 });
+    });
+
+    Crafty.scene("Lose", function() {
+        cleanupBricks();
+        Crafty.e("2D, DOM, Text, Keyboard").attr({w:200,h:20,x:300,y:200})
+            .text("YOU DEAD")
+            .css({"text-align":"center", "color":"red"})
+            .bind('KeyDown', function(e) {
+                if(e.key == Crafty.keys['SPACE']) {
+                    Crafty.scene("main");
+                }
+            });
     });
 };
 
 function nextLevel() {
+    cleanupBricks();
     ++level_index;
     //For now, just repeat the levels infinietly, //TODO: Add Victory Screen
     level_index %= LEVEL_DATA.Levels.length;
@@ -113,10 +131,13 @@ function generateMap(level) {
 };
 
 function levelComplete() {
-    for(var i=0; i<Bricks.length; ++i)
-        if(Bricks[i] != undefined)
-            return false;
-    return true;
+    return (Bricks.length == 0);
+}
+
+function cleanupBricks() {
+    for (var i=0; i<Bricks.length; ++i)
+        Bricks[i].destroy();
+    Bricks = [];
 }
 
 function addBrick(i,j,hp)
@@ -124,9 +145,12 @@ function addBrick(i,j,hp)
     Bricks.push(Crafty.e("2D, DOM, brickSprite, Collision")
         .attr({x: i*BRICK_WIDTH, y: j*BRICK_HEIGHT, w:BRICK_WIDTH, h:BRICK_HEIGHT, z: 1, hp: hp, index: Bricks.length})
         .onHit('ballSprite', function() {
+            Crafty.audio.play("hit1", 1, 1);
             --this.hp;
             if (this.hp < 0) {
-                delete Bricks[this.index];
+                Bricks.splice(this.index, 1);
+                for (var i=this.index; i<Bricks.length; ++i)
+                    --Bricks[i].index;
                 this.destroy();
             } else {
                 this.sprite(this.hp*BRICK_WIDTH, 0);
