@@ -1,6 +1,7 @@
 var SCREEN_WIDTH = 800;
 var SCREEN_HEIGHT = 600;
 var Bricks = [];
+var DEBUG = false; //aka cheat mode
 
 window.onload = function() {
 
@@ -38,8 +39,7 @@ window.onload = function() {
                     if (this.left && this.x > 0)
                         this.x -= this.speed;
                     if (levelComplete()) {
-                        ++level_index;
-                        Crafty.scene("main");
+                        nextLevel();
                     }
                 })
                 .bind('KeyDown', function(e) {
@@ -51,6 +51,9 @@ window.onload = function() {
                         this.right = true;
                     }
                     if(e.key == Crafty.keys['SPACE'] && !start) start = 1;
+                    if(e.key == Crafty.keys['S'] && DEBUG) {
+                        nextLevel();
+                    }
                 })
                 .bind('KeyUp', function(e) {
                     if (e.key == Crafty.keys['LEFT_ARROW']) {
@@ -77,6 +80,13 @@ window.onload = function() {
                 });
     });
 };
+
+function nextLevel() {
+    ++level_index;
+    //For now, just repeat the levels infinietly, //TODO: Add Victory Screen
+    level_index %= LEVEL_DATA.Levels.length;
+    Crafty.scene("main");
+}
 
 function getCurrentLevel() {
     return LEVEL_DATA.Levels[level_index];
