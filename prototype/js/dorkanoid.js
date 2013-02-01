@@ -9,12 +9,14 @@ window.onload = function() {
     
         Crafty.scene("loading", function(){
 
-        Crafty.load(["images/dorkanoidSpriteSheet.png"], function() {
+        Crafty.load(["images/dorkanoidSpriteSheet.png", "sfx/hit1.wav", "sfx/hit2.wav"], function() {
             Crafty.sprite(1, "images/dorkanoidSpriteSheet.png", {
                 brickSprite: [0,0,800,20],
                 ballSprite: [0,20,20,20],
                 paddleSprite: [20,20,120,20]
             });
+            Crafty.audio.add("hit1", "sfx/hit1.wav");
+            Crafty.audio.add("hit2", "sfx/hit2.wav");
             Crafty.scene("main");
         });
 
@@ -31,7 +33,7 @@ window.onload = function() {
         generateMap(level);
         createBackground();
         var start = 0;
-        var player = Crafty.e("2D, DOM, paddleSprite, Keyboard, solid")
+        var player = Crafty.e("2D, DOM, paddleSprite, Keyboard")
                 .attr({x: 340, y: 500, z: 2, left: false, right: false, speed: 7})
                 .bind('EnterFrame', function() {
                     if (this.right && this.x < 680)
@@ -65,7 +67,12 @@ window.onload = function() {
                 
         var ball = Crafty.e("2D, DOM, ballSprite, Collision")
                 .attr({x: 390, y: 480, z: 2, vx: 0, vy: 0, speed: 10})
-                .onHit('solid', function() {
+                .onHit('brickSprite', function() {
+                    Crafty.audio.play("hit1", 1, 1);
+                    this.vy = -this.vy;
+                })
+                .onHit('paddleSprite', function() {
+                    Crafty.audio.play("hit2", 1, 1);
                     this.vy = -this.vy;
                 })
                 .bind('EnterFrame', function() {
@@ -114,7 +121,7 @@ function levelComplete() {
 
 function addBrick(i,j,hp)
 {
-    Bricks.push(Crafty.e("2D, DOM, brickSprite, solid, Collision")
+    Bricks.push(Crafty.e("2D, DOM, brickSprite, Collision")
         .attr({x: i*BRICK_WIDTH, y: j*BRICK_HEIGHT, w:BRICK_WIDTH, h:BRICK_HEIGHT, z: 1, hp: hp, index: Bricks.length})
         .onHit('ballSprite', function() {
             --this.hp;
