@@ -32,16 +32,19 @@ window.onload = function() {
         level = getCurrentLevel();
         generateMap(level);
         createBackground();
+        var paused = false;
         var start = 0;
         var player = Crafty.e("2D, DOM, paddleSprite, Keyboard")
                 .attr({x: 340, y: 500, z: 2, left: false, right: false, speed: 15})
                 .bind('EnterFrame', function() {
-                    if (this.right && this.x < 680)
-                        this.x += this.speed;
-                    if (this.left && this.x > 0)
-                        this.x -= this.speed;
-                    if (levelComplete()) {
-                        nextLevel();
+                    if  (!paused) {
+                        if (this.right && this.x < 680)
+                            this.x += this.speed;
+                        if (this.left && this.x > 0)
+                            this.x -= this.speed;
+                        if (levelComplete()) {
+                            nextLevel();
+                        }
                     }
                 })
                 .bind('KeyDown', function(e) {
@@ -51,9 +54,16 @@ window.onload = function() {
                     } else if (e.key == Crafty.keys['RIGHT_ARROW']) {
                         if (!start) start = -1;
                         this.right = true;
-                    }
-                    if(e.key == Crafty.keys['SPACE'] && !start) start = 1;
-                    if(e.key == Crafty.keys['S'] && DEBUG) {
+                    } else if (e.key == Crafty.keys['P']) {
+                        paused = !paused;
+                        if (paused) {
+                            screenText.text("PAUSED");
+                        } else {
+                            screenText.text("");
+                        }
+                    } else if(e.key == Crafty.keys['SPACE'] && !start) {
+                        start = 1;
+                    } else if(e.key == Crafty.keys['S'] && DEBUG) {
                         nextLevel();
                     }
                 })
@@ -75,21 +85,26 @@ window.onload = function() {
                     this.vy = -this.vy;
                 })
                 .bind('EnterFrame', function() {
-                    if (this.vx == 0 && this.vy == 0 && start) {
-                        this.vx = this.speed * start;
-                        this.vy = -this.speed;
-                    }
-                    this.x += this.vx;
-                    this.y += this.vy;
-                    if (this.x >= SCREEN_WIDTH - 20 || this.x <= 0) this.vx = -this.vx;
-                    if (this.y <= 0) this.vy = -this.vy;
-                    if (this.y >= SCREEN_HEIGHT) {
-                        if (DEBUG)
-                            this.vy = -this.vy;
-                        else
-                            Crafty.scene("Lose");
+                    if  (!paused) {
+                        if (this.vx == 0 && this.vy == 0 && start) {
+                            this.vx = this.speed * start;
+                            this.vy = -this.speed;
+                        }
+                        this.x += this.vx;
+                        this.y += this.vy;
+                        if (this.x >= SCREEN_WIDTH - 20 || this.x <= 0) this.vx = -this.vx;
+                        if (this.y <= 0) this.vy = -this.vy;
+                        if (this.y >= SCREEN_HEIGHT) {
+                            if (DEBUG)
+                                this.vy = -this.vy;
+                            else
+                                Crafty.scene("Lose");
+                        }
                     }
                 });
+
+        var screenText = Crafty.e("2D, DOM, Text, Keyboard")
+            .attr({w:200,h:20,x:300,y:200})
     });
 
     Crafty.scene("Lose", function() {
