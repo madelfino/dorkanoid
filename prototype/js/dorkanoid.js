@@ -2,6 +2,7 @@ var SCREEN_WIDTH = 800;
 var SCREEN_HEIGHT = 600;
 var Bricks = [];
 var DEBUG = false; //aka cheat mode
+var mute = false;
 
 window.onload = function() {
 
@@ -13,14 +14,15 @@ window.onload = function() {
             Crafty.sprite(1, "images/dorkanoidSpriteSheet.png", {
                 brickSprite: [0,0,800,20],
                 ballSprite: [0,20,20,20],
-                paddleSprite: [20,20,120,20]
+                paddleSprite: [20,20,120,20],
+                speakerSprite: [140,20,20,20]
             });
             Crafty.audio.add("hit1", "sfx/hit1.wav");
             Crafty.audio.add("hit2", "sfx/hit2.wav");
             Crafty.scene("main");
         });
 
-        Crafty.background("#000");
+        Crafty.background("#2980F7");
         Crafty.e("2D, DOM, Text").attr({w:100,h:20,x:150,y:120})
                 .text("Loading")
                 .css({"text-align":"center"});
@@ -81,7 +83,7 @@ window.onload = function() {
                     this.vy = -this.vy;
                 })
                 .onHit('paddleSprite', function() {
-                    Crafty.audio.play("hit2", 1, 1);
+                    playSound("hit2");
                     this.vy = -this.vy;
                 })
                 .bind('EnterFrame', function() {
@@ -103,6 +105,29 @@ window.onload = function() {
                     }
                 });
 
+        var muteButton = Crafty.e("2D, DOM, speakerSprite, Mouse, Keyboard")
+            .attr({x: 780, y: 580, z: 3})
+            .bind('KeyDown', function(e) {
+                if(e.key == Crafty.keys['M']) {
+                    mute = !mute;
+                    if(mute) {
+                        this.sprite(160, 20);
+                    } else {
+                        this.sprite(140,20);
+                    }
+                }
+            })
+            .bind('Click', function() {
+                mute = !mute;
+                if(mute) {
+                    this.sprite(160, 20);
+                } else {
+                    this.sprite(140,20);
+                }
+            });
+
+        if(mute) muteButton.sprite(160,20);
+
         var screenText = Crafty.e("2D, DOM, Text, Keyboard")
             .attr({w:200,h:20,x:300,y:200})
     });
@@ -119,6 +144,13 @@ window.onload = function() {
             });
     });
 };
+
+function playSound(sound, repeat, volume)
+{
+    if (!repeat) repeat = 1;
+    if (!volume) volume = 1;
+    if (!mute) Crafty.audio.play(sound);
+}
 
 function nextLevel() {
     cleanupBricks();
@@ -164,7 +196,7 @@ function addBrick(i,j,hp)
             }, function() {
             if (this.gotHit) {
                 this.gotHit = false;
-                Crafty.audio.play("hit1", 1, 1);
+                playSound("hit1");
                 --this.hp;
                 if (this.hp < 0) {
                     Bricks.splice(this.index, 1);
