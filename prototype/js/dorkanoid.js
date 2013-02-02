@@ -158,17 +158,22 @@ function cleanupBricks() {
 function addBrick(i,j,hp)
 {
     Bricks.push(Crafty.e("2D, DOM, brickSprite, Collision")
-        .attr({x: i*BRICK_WIDTH, y: j*BRICK_HEIGHT, w:BRICK_WIDTH, h:BRICK_HEIGHT, z: 1, hp: hp, index: Bricks.length})
+        .attr({x: i*BRICK_WIDTH, y: j*BRICK_HEIGHT, w:BRICK_WIDTH, h:BRICK_HEIGHT, z: 1, hp: hp, index: Bricks.length, gotHit: false})
         .onHit('ballSprite', function() {
-            Crafty.audio.play("hit1", 1, 1);
-            --this.hp;
-            if (this.hp < 0) {
-                Bricks.splice(this.index, 1);
-                for (var i=this.index; i<Bricks.length; ++i)
-                    --Bricks[i].index;
-                this.destroy();
-            } else {
-                this.sprite(this.hp*BRICK_WIDTH, 0);
+            this.gotHit = true;
+            }, function() {
+            if (this.gotHit) {
+                this.gotHit = false;
+                Crafty.audio.play("hit1", 1, 1);
+                --this.hp;
+                if (this.hp < 0) {
+                    Bricks.splice(this.index, 1);
+                    for (var i=this.index; i<Bricks.length; ++i)
+                        --Bricks[i].index;
+                    this.destroy();
+                } else {
+                    this.sprite(this.hp*BRICK_WIDTH, 0);
+                }
             }
         })
         .sprite(hp*BRICK_WIDTH, 0)
