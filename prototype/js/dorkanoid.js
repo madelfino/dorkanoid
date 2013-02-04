@@ -36,8 +36,8 @@ window.onload = function() {
         createBackground();
         var paused = false;
         var start = 0;
-        var player = Crafty.e("2D, DOM, paddleSprite, Keyboard")
-                .attr({x: 340, y: 500, z: 2, left: false, right: false, speed: 15})
+        var player = Crafty.e("2D, DOM, paddleSprite, Keyboard, solid")
+                .attr({x: 340, y: 500, z: 2, left: false, right: false, speed: 15, name: "paddle"})
                 .bind('EnterFrame', function() {
                     if  (!paused) {
                         if (this.right && this.x < 680)
@@ -76,18 +76,34 @@ window.onload = function() {
                         this.right = false;
                     }
                 });
-                
-        var ball = Crafty.e("2D, DOM, ballSprite, Collision")
-                .attr({x: 390, y: 480, z: 2, vx: 0, vy: 0, speed: 9})
-                .onHit('brickSprite', function() {
-                    this.vy = -this.vy;
-                })
-                .onHit('paddleSprite', function() {
-                    playSound("hit2");
-                    this.vy = -this.vy;
+
+        var ball = Crafty.e("2D, DOM, ballSprite, Collision, solid")
+                .attr({x: 390, y: 480, z: 2, vx: 0, vy: 0, speed: 7})
+                .onHit('solid', function(data) {
+                    console.log(data[0].obj);
+                    if (data[0].obj.name == "paddle")
+                        playSound("hit2");
+                    var Rx = data[0].obj.x;
+                    var Ry = data[0].obj.y;
+                    var Rw = data[0].obj.w;
+                    var Rh = data[0].obj.h;
+                    var Cx = this.x + this.w/2;
+                    var Cy = this.y + this.h/2;
+                    if (Cx > Rx && Cx < (Rx + Rw)) {
+                        this.vy = -this.vy;
+                        if (this.y > Ry) this.y = Ry + Rh;
+                        else this.y = Ry - this.h;
+                    } else if (Cy > Ry && Cy < (Ry + Rh)) {
+                        this.vx = -this.vx;
+                        if (this.x < Rx + Rh/2) this.x = Rx - this.w;
+                        else this.x = Rx + Rw;
+                    } else {
+                        this.vx = -this.vx;
+                        this.vy = -this.vy;
+                    }
                 })
                 .bind('EnterFrame', function() {
-                    if  (!paused) {
+                    if (!paused) {
                         if (this.vx == 0 && this.vy == 0 && start) {
                             this.vx = this.speed * start;
                             this.vy = -this.speed;
@@ -189,7 +205,7 @@ function cleanupBricks() {
 
 function addBrick(i,j,hp)
 {
-    Bricks.push(Crafty.e("2D, DOM, brickSprite, Collision")
+    Bricks.push(Crafty.e("2D, DOM, brickSprite, Collision, solid")
         .attr({x: i*BRICK_WIDTH, y: j*BRICK_HEIGHT, w:BRICK_WIDTH, h:BRICK_HEIGHT, z: 1, hp: hp, index: Bricks.length, gotHit: false})
         .onHit('ballSprite', function() {
             this.gotHit = true;
